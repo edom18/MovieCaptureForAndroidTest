@@ -1,4 +1,3 @@
-using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,7 +5,6 @@ using UnityEngine.UI;
 public class CameraMicRecorder : MonoBehaviour
 {
     [SerializeField] private Button _recordButton;
-    [SerializeField] private int _sampleRate = 44100;
 
     private bool _isRecording = false;
     private TMP_Text _buttonText;
@@ -28,8 +26,8 @@ public class CameraMicRecorder : MonoBehaviour
         Debug.Log("Initializing Android Recorder");
         
         AndroidJavaObject activity = new AndroidJavaClass("com.unity3d.player.UnityPlayer").GetStatic<AndroidJavaObject>("currentActivity");
-        
-        _recorderObject = new AndroidJavaObject("tokyo.mesoncamerarecorder.CameraRecorder", activity);
+
+        _recorderObject = new AndroidJavaObject("tokyo.mesoncamerarecorder.CameraRecorder", activity, name);
         _recorderObject.Call("startCamera");
 #endif
     }
@@ -70,5 +68,10 @@ public class CameraMicRecorder : MonoBehaviour
         _isRecording = false;
         _buttonText.text = "Start Recording";
         _recorderObject.Call("captureVideo");
+    }
+
+    public void CapturedVideo(string filePath)
+    {
+        Debug.Log(filePath);
     }
 }
