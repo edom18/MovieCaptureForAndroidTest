@@ -1,5 +1,7 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using UnityEngine.Windows;
 
@@ -78,14 +80,14 @@ public class CameraMicRecorder : MonoBehaviour
     private void TakeFrame()
     {
         if (string.IsNullOrEmpty(_latestFilePath)) return;
-        
+
         _recorderObject.Call("getFrameAtTime", _latestFilePath, 1000);
     }
 
     public void CapturedVideo(string filePath)
     {
         Debug.Log(filePath);
-        
+
         _latestFilePath = filePath;
     }
 
@@ -93,12 +95,29 @@ public class CameraMicRecorder : MonoBehaviour
     {
         Debug.Log(filePath);
 
-        // byte[] data = File.ReadAllBytes(filePath);
-        //
-        // Debug.Log($"Length: {data.Length}");
-        //
-        // Texture2D texture = new Texture2D(1, 1);
-        // texture.LoadImage(data);
-        // texture.Apply();
+        StartCoroutine(LoadFrame(filePath));
+    }
+
+    private IEnumerator LoadFrame(string filePath)
+    {
+        using UnityWebRequest request = UnityWebRequest.Get($"file://{filePath}");
+
+        yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError($"ERROR: {request.error}");
+            yield break;
+        }
+        
+        byte[] data = request.downloadHandler.data;
+        
+        Debug.Log($"Length: {data.Length}");
+        
+        Texture2D texture = new Texture2D(1, 1);
+        texture.LoadImage(data);
+        texture.Apply();
+
+        _preview.texture = texture;
     }
 }
